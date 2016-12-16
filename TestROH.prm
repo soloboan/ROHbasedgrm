@@ -1,0 +1,67 @@
+/*******************************
+ **     Global parameters     **
+ *******************************/
+title = "Building ROH potential data";
+nrep  = 1;                    //Number of replicates
+h2    = 0.3;                  //Heritability
+qtlh2 = 0.3;                  //QTL heritability
+phvar = 100.0;                  //Phenotypic variance
+
+/*******************************
+ **   Historical population   **
+ *******************************/
+begin_hp;
+   hg_size = 450 [0];         //Size of the historical generations
+   nmlhg   = 150;              //Number of males in the last generation
+end_hp;
+
+/*******************************
+ **        Populations        **
+ *******************************/
+begin_pop = "ROHpop";
+   begin_founder;
+      male   [n = 150, pop = "hp"];
+      female [n = 300, pop = "hp"];
+   end_founder;
+   ls  = 5;                   //Litter size
+   pmp = 0.5 /fix;            //Proportion of male progeny
+   ng  = 30;                  //Number of generations
+   sd  = ebv /h;             //Selection design
+   ebv_est = blup /true_av;
+   begin_popoutput;
+        data;
+        stat; 
+        genotype /gen 28 29 30;
+   end_popoutput;
+end_pop;
+
+/*******************************
+ **          Genome           **
+ *******************************/
+begin_genome;
+   begin_chr = 30;
+      chrlen = 100;            //Chromosome length
+      nmloci = 300;             //Number of markers
+      mpos   = rnd;           //Marker positions
+      nma    = all 2;         //Number of marker alleles
+      maf    = eql;           //Marker allele frequencies
+      nqloci = 30;             //Number of QTL
+      qpos   = rnd;           //QTL positions
+      nqa    = all 2;         //Number of QTL alleles
+      qaf    = eql;           //QTL allele frequencies
+      qae    = rndg 0.4;      //QTL allele effects
+      cld    = mq;
+      end_chr;
+    mmutr = 2.5e-5 /recurrent; //Marker mutation rate
+    qmutr = 2.5e-5 /recurrent; //QTL mutation rate
+    r_mpos_g; // Randomize marker positions across genome
+    r_qpos_g; // Randomize marker positions across genome
+end_genome;
+
+/*******************************
+ **       Output options      **
+ *******************************/
+begin_output;
+  output_folder="TestROH";
+  linkage_map;
+end_output;
