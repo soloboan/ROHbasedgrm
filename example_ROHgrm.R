@@ -5,7 +5,7 @@ system('QMSim.exe TestROH.prm')
 
 
 #### Testing a file phased simulated data  ####
-inpgenofile='example.linkgae'
+inpgenofile='examplephased.linkage'
 mapinfo='example.map'
 ROHsizeNSNP=100
 Nummismatch=0
