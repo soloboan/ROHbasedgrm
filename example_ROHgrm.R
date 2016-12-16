@@ -1,18 +1,34 @@
+########################################################################
+################## Example file generated with QMSim   #################
+########################################################################
 system('QMSim.exe TestROH.prm')
 
-#map <- read.table('TestROH/lm_mrk_001.txt',header=T,stringsAsFactors = F)
-#map$pos <- format(map$Position*1000000,scientific = F)
-#write.table(map[,c(2,1,3,4)],'ROH.map',quote = F,row.names = F,col.names = F)
 
-inpgenofile = 'TestROH/ROHpop_mrk_001.txt'
-mapinfo='ROH.map'
-ROHsizeNSNP=30
+#### Testing a file phased simulated data  ####
+inpgenofile='example.linkgae'
+mapinfo='example.map'
+ROHsizeNSNP=100
+Nummismatch=0
+inputformat='beagle'
+outputformat='asreml'
+outROHcount=F
+outname='example'
 source('ROHbased_grm.R')
-ROHgrm <- ROHbasedgrm(inpgenofile,mapinfo,ROHsizeNSNP,Nummismatch=0,outputformat='asreml',outname='test')
+exampleROHgrm <- ROHbasedgrm(inpgenofile,mapinfo,inputformat,ROHsizeNSNP,
+                          Nummismatch,outputformat,outROHcount,outname)
 
 
-Z <- mathaplo + pathaplo
-afreq <- colMeans(Z)/2
-K <- sum(2*afreq*(1-afreq))
-Z <- scale(Z,center=T,scale=F)
-G <- tcrossprod(data.matrix(Z))/K
+
+#### Testing a file phased and imputed with BEAGLE  ####
+inpgenofile = 'Rawchr29.bgl.gz'
+mapinfo='Rawchr29.bim'
+ROHsizeNSNP=50
+Nummismatch=1
+inputformat='beagle'
+outputformat='asreml'
+outROHcount=F
+outname='Raw'
+source('ROHbased_grm.R')
+RawROHgrm <- ROHbasedgrm(inpgenofile,mapinfo,inputformat,ROHsizeNSNP,
+                      Nummismatch,outputformat,outROHcount,outname)
+
