@@ -36,7 +36,7 @@ The idea is based on the approach by [F. Gomez-Romano et al. (2016)](http://onli
        }
        diag(ROHbasedcoans) <- 1+(diag(ROHbasedcoans)/nsnps)
        ROHbasedcoans[lower.tri(ROHbasedcoans)] <- ROHbasedcoans[lower.tri(ROHbasedcoans)]/(4*nsnps)
-       ####################################################################################################################
+       ##################################################################################################################
        
        
 ### The output files
@@ -49,6 +49,9 @@ The idea is based on the approach by [F. Gomez-Romano et al. (2016)](http://onli
         
 
 #### warning :: when large data is used the script can be very slow so please paralellize it using the apprach described above
+
+
+
 
 ##### The script was written in collaboration and discussions with 
          - Gebreyohans Tesfaye Gebregiwergis (gebreyohans.tesfaye.gebregiwergis@nmbu.no)
