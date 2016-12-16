@@ -1,12 +1,42 @@
-ROHbasedgrm <-function(inpgenofile,mapinfo,ROHsizeNSNP=50,Nummismatch=0,outputformat,outname) {
+ROHbasedgrm <-function(inpgenofile,mapinfo,inputformat,ROHsizeNSNP=100,
+                       Nummismatch=0,outputformat,outROHcount=F,outname){
   ####### importing phased haplotypes
-  del <-  read.table(paste(inpgenofile,sep=''),skip=1,header=F,stringsAsFactors=F,nrow=50)
-  classes <- sapply(del,class)
-  haptypes <- read.table(paste(inpgenofile,sep=''),skip=1,header=F,stringsAsFactors=F,colClasses=classes)
-  rm(classes); gc()
-  animid <- as.vector(haptypes[,1])
-  haptypes <- haptypes[,-1]
-  cat('... phased haplotypes imported and processed ...\n')
+  if(inputformat=='linkage'){
+    del <-  read.table(paste(inpgenofile,sep=''),header=F,stringsAsFactors=F,nrow=50)
+    classes <- sapply(del,class)
+    haptypes <- read.table(paste(inpgenofile,sep=''),header=F,stringsAsFactors=F,colClasses=classes)
+    rm(classes,del); gc()
+    animid <- as.vector(haptypes[,1])
+    haptypes <- haptypes[,-1]
+    cat('... phased haplotypes imported and processed ...\n')
+    ### edits and infor gathering on data ###
+    #animtest <- 
+    animtest <- nrow(haptypes)
+    pathaplo <- as.matrix(haptypes[1:animtest,seq(1,ncol(haptypes),2)]-1)
+    mathaplo <- as.matrix(haptypes[1:animtest,seq(2,ncol(haptypes),2)]-1)
+    nanim <- nrow(mathaplo)
+    nsnps <- ncol(mathaplo)
+    ids <- 1:nrow(mathaplo)
+  } else if(inputformat=='beagle'){
+    del <-  read.table(paste(inpgenofile,sep=''),skip=1,header=F,stringsAsFactors=F,nrow=50)
+    classes <- sapply(del,class)
+    haptypes <- read.table(paste(inpgenofile,sep=''),skip=1,header=F,stringsAsFactors=F,colClasses=classes)
+    rm(classes,del); gc()
+    animid <- read.table(paste(inpgenofile,sep=''),nrows=1,header=F,stringsAsFactors=F)[,-1:-2]
+    animid <- as.vector(t(animid[,seq(1,ncol(animid),2)]))
+    haptypes <- haptypes[,-1:-2]
+    cat('... phased haplotypes imported and processed ...\n')
+    haptypes <- apply(haptypes,2,function(x)as.numeric(as.factor(x)))
+    dim(haptypes)
+    ### edits and infor gathering on data ###
+    animtest <- ncol(haptypes)
+    pathaplo <- t(as.matrix(haptypes[,seq(1,ncol(haptypes),2)])-1)
+    mathaplo <- t(as.matrix(haptypes[,seq(2,ncol(haptypes),2)])-1)
+    dim(pathaplo)
+    nanim <- nrow(mathaplo)
+    nsnps <- ncol(mathaplo)
+    ids <- 1:nrow(mathaplo)
+  }
   
   ####### importing marker position for splitting into chromosomes ####
   mapfile <-  read.table(paste(mapinfo,sep=''),header=F,stringsAsFactors=F)
@@ -20,15 +50,6 @@ ROHbasedgrm <-function(inpgenofile,mapinfo,ROHsizeNSNP=50,Nummismatch=0,outputfo
   rm(mapfilestrmin,mapfilestrmax)
   chroms <- sort(unique(mapfile$CHR)); chroms <- chroms[which(chroms!=0)]
   cat('... marker cordinates/Positions imported and processed ...\n') 
-  
-  ### edits and infor gathering on data ###
-  #animtest <- 
-  animtest <- nrow(haptypes)
-  pathaplo <- as.matrix(haptypes[1:animtest,seq(1,ncol(haptypes),2)]-1)
-  mathaplo <- as.matrix(haptypes[1:animtest,seq(2,ncol(haptypes),2)]-1)
-  nanim <- nrow(mathaplo)
-  nsnps <- ncol(mathaplo)
-  ids <- 1:nrow(mathaplo)
   
   #########################################################
   #######        Functions for ROH detection    ###########
@@ -45,6 +66,7 @@ ROHbasedgrm <-function(inpgenofile,mapinfo,ROHsizeNSNP=50,Nummismatch=0,outputfo
     colnames(Rsize) <- c('start','end','ROHL','alleletype')
     Rsize$start <- c; Rsize$end <- e-1; Rsize$ROHL <- d
     Rsize$alleletype <-a[Rsize$start]
+    Rsize <- Rsize[which(Rsize$ROHL>=ROHsizeNSNP),]
     return(Rsize)
   }
   
@@ -59,8 +81,7 @@ ROHbasedgrm <-function(inpgenofile,mapinfo,ROHsizeNSNP=50,Nummismatch=0,outputfo
     }
     return(sum(ROHshare))
   }
-  #########################################################################################  
-  
+  #########################################################################################   
   ROHbasedcoans <- matrix(0,nrow=nanim,ncol=nanim)
   for (o in chroms){
     cat('\n... chromosome ...',o,' ....\n')
@@ -73,7 +94,7 @@ ROHbasedgrm <-function(inpgenofile,mapinfo,ROHsizeNSNP=50,Nummismatch=0,outputfo
     #### The number of combinations
     ncomb <- (nanim^2 + nanim)/2
     #### Iteration check printout
-    iterchecks.ncomb <- round(ncomb/5,digits=0)
+    iterchecks.ncomb <- round(ncomb/10,digits=0)
     
     for(i in ids){
       ##### determine ROHs for animal i (both paternal and maternal haplotype)  ####
@@ -83,9 +104,9 @@ ROHbasedgrm <-function(inpgenofile,mapinfo,ROHsizeNSNP=50,Nummismatch=0,outputfo
         ### dealing with diagonals (This is equivalent to ROHs from PLINK) ###
         ### Note that, some toher plink or ROH determinations thresholds are not used here ####
         if(i==j){
-          if(nrow(Rsize.pat)==0){ ### if no ROH 
+          if(nrow(Rsize.pat)==0 | nrow(Rsize.mat)==0){ ### if no ROH 
             coansROHij <- 0
-          } else { ### if there are ROHs
+          } else if(nrow(Rsize.pat)>0 & nrow(Rsize.mat)>0) { ### if there are ROHs
             ##### compare paternal and maternal haplotypes if they are IBD (same) ####
             ROHcountij <- coansROH(parhaploj=pathaplochr[j,],ROHsize=Rsize.mat,nHET=Nummismatch)
             ##### 
@@ -112,32 +133,33 @@ ROHbasedgrm <-function(inpgenofile,mapinfo,ROHsizeNSNP=50,Nummismatch=0,outputfo
             ROHcountjpat.mati <- coansROH(parhaploj=pathaplochr[j,],ROHsize=Rsize.mat,nHET=Nummismatch)
             ROHcountjmat.mati <- coansROH(parhaploj=mathaplochr[j,],ROHsize=Rsize.mat,nHET=Nummismatch) 
           }
-          
           ### sum up all ROHs from the 4-way comparison of animal i with animal j
           coansROHij <- sum(ROHcountjpat.pati,ROHcountjmat.pati,ROHcountjpat.mati,ROHcountjmat.mati)
           ROHbasedcoanschr[j,i] <- coansROHij
-          
           if(ncomb %% iterchecks.ncomb==0){cat(ncomb,' combinations left ...\n')}
           ncomb <- ncomb-1
-          if(ncomb==1){cat(ncomb,' combinations left ...\n')}
         }
       }
     }
     ROHbasedcoans <- ROHbasedcoans+ROHbasedcoanschr
   }
-  
-  diag(ROHbasedcoans) <- 1+(diag(ROHbasedcoans)/nsnps)
-  ROHbasedcoans[lower.tri(ROHbasedcoans)] <- ROHbasedcoans[lower.tri(ROHbasedcoans)]/(4*nsnps)
-  if(outputformat=='matrix'){
-    write.table(ROHbasedcoans,paste(outname,'ROH.grm',sep=''),quote=F,row.names=F,col.names=F)
-  } else if(outputformat=='asreml'){
-    rowcolwise <- ROHbasedcoans[lower.tri(ROHbasedcoans,diag=T)]
-    ROHbasedcoansFF <- as.data.frame(which(row(ROHbasedcoans)>=col(ROHbasedcoans),arr.ind=TRUE))
-    ROHbasedcoansFF$ROHG <- rowcolwise
-    ROHbasedcoansFF <- ROHbasedcoansFF[,c(2,1,3)]
-    ROHbasedcoansFF <- ROHbasedcoansFF[order(ROHbasedcoansFF[,2],ROHbasedcoansFF[,1]),]
-    ROHbasedcoansFF <- ROHbasedcoansFF[,c(2,1,3)]
-    write.table(ROHbasedcoansFF,paste(outname,'ROHasreml.grm',sep=''),quote=F,row.names=F,col.names=F)
+  if(outROHcount==T){
+    write.table(ROHbasedcoans,paste(outname,'_ROHcount.txt',sep=''),quote=F,row.names=F,col.names=F)
+    return(ROHbasedcoans)
+  } else {
+    diag(ROHbasedcoans) <- 1+(diag(ROHbasedcoans)/nsnps)
+    ROHbasedcoans[lower.tri(ROHbasedcoans)] <- ROHbasedcoans[lower.tri(ROHbasedcoans)]/(4*nsnps)
+    if(outputformat=='matrix'){
+      write.table(ROHbasedcoans,paste(outname,'_ROH.grm',sep=''),quote=F,row.names=F,col.names=F)
+    } else if(outputformat=='asreml'){
+      rowcolwise <- ROHbasedcoans[lower.tri(ROHbasedcoans,diag=T)]
+      ROHbasedcoansFF <- as.data.frame(which(row(ROHbasedcoans)>=col(ROHbasedcoans),arr.ind=TRUE))
+      ROHbasedcoansFF$ROHG <- rowcolwise
+      ROHbasedcoansFF <- ROHbasedcoansFF[,c(2,1,3)]
+      ROHbasedcoansFF <- ROHbasedcoansFF[order(ROHbasedcoansFF[,2],ROHbasedcoansFF[,1]),]
+      ROHbasedcoansFF <- ROHbasedcoansFF[,c(2,1,3)]
+      write.table(ROHbasedcoansFF,paste(outname,'_ROHasreml.grm',sep=''),quote=F,row.names=F,col.names=F)
+    }
+    return(ROHbasedcoans)
   }
-  return(ROHbasedcoans)
 }
