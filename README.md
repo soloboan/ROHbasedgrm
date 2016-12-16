@@ -20,8 +20,8 @@ The idea is based on the approach by [F. Gomez-Romano et al. (2016)](http://onli
 ##### outROHcount -- This argument is very important when you want to parallelize the computation in case the marker density and number of samples is large (>1000 animals > 50000 markers). In this case you can send job per chromosome and late combine by summing number of ROH across all the chromosomes. 
        You can compute this in R using the following code
        ################################################################################################################
-       nanim=1000           ##### how many animals
-       nsnps = 50000        ##### number of snps
+       nanim =  1000           ##### how many animals
+       nsnps = 50000           ##### number of snps
        
        ##### empty ROH segment counts (useful later)
        ROHbasedcoans <- matrix(0,nrow=nanim,ncol=nanim)
