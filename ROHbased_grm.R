@@ -1,5 +1,4 @@
-ROHbasedgrm <-function(inpgenofile,mapinfo,inputformat,ROHsizeNSNP=100,
-                       Nummismatch=0,outputformat,outROHcount=F,outname){
+ROHbasedgrm <-function(inpgenofile,mapinfo,inputformat='beagle',ROHsizeNSNP=100,Nummismatch=0,outputformat='asreml',outROHcount=F,outname){
   ####### importing phased haplotypes
   if(inputformat=='linkage'){
     del <-  read.table(paste(inpgenofile,sep=''),header=F,stringsAsFactors=F,nrow=50)
