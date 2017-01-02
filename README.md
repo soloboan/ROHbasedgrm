@@ -14,7 +14,7 @@ The idea is based on the approach by [F. Gomez-Romano et al. (2016)](http://onli
        - ROHsizeNSNP            :: ROHsize in number of SNPs
        - Nummismatch            :: Number of heterozygotes allowed 
        - outputformat           :: output file format - 'asreml' or 'matrix' 
-       - outROHcount            :: should the output be ROH counts OR kiship estimate (if kinship use 'TRUE', if ROH count use 'FALSE')
+       - outROHcount            :: should the output be ROH counts OR kiship estimate (if kinship use 'FALSE', if ROH count use 'TRUE')
        - outname                :: output file name
        
 ##### outROHcount -- This argument is very important when you want to parallelize the computation in case the marker density and number of samples is large (>1000 animals > 50000 markers). In this case you can send job per chromosome and late combine by summing number of ROH across all the chromosomes. 
@@ -41,11 +41,11 @@ The idea is based on the approach by [F. Gomez-Romano et al. (2016)](http://onli
        
 ### The output files
         - Output depends on the outputformat and outROHcount arguement 
-        - The outputs are mainly RoH counts between animals and within an animal 
+        - The outputs are mainly RoH kinship or ROH counts between animals and within an animal 
         
         --- if outROHcount=TRUE, then output is ROH counts between individual and within an indiividual (outputformat DOES NOT MATTER)
-        --- if outROHcount=TRUE and outputformat='asreml', then kinship is estimated and an asreml format output file is generated 
-        --- if outROHcount=TRUE and outputformat='matrix', then kinship is estimated and an matrix format output file is generated 
+        --- if outROHcount=FALSE and outputformat='asreml', then kinship is estimated and an asreml format output file is generated 
+        --- if outROHcount=FALSE and outputformat='matrix', then kinship is estimated and an matrix format output file is generated 
         
 
 #### warning :: when large data is used the script can be very slow so please paralellize it using the apprach described above
